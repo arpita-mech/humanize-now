@@ -54,7 +54,7 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
+          model: "google/gemini-3-flash-preview",
           temperature: 1.0,
           max_tokens: 2048,
           messages: [
