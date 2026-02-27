@@ -14,9 +14,36 @@ const toneInstructions: Record<string, string> = {
   friendly: "Sound warm, friendly and approachable.",
 };
 
-const FIRST_PASS_PROMPT = `You are a native human writer with 25+ years of writing experience. Rewrite the given text so it scores BELOW 10% on ALL AI detectors. Rules: Mix short and long sentences randomly. Start sentences with And, But, So, Honestly. Use contractions everywhere. Add subtle self-corrections like well sort of, or at least I think so. Mix casual and professional vocabulary. Make paragraphs uneven in length. Add one rhetorical question per 3-4 paragraphs. NEVER use: Furthermore, Moreover, In conclusion, Certainly, Absolutely, Delve, Utilize, Leverage, Facilitate, Demonstrate, It is worth noting. Add genuine personal feelings per paragraph. Write like talking to a smart friend. Output ONLY the rewritten text, no explanations.`;
+const FIRST_PASS_PROMPT = `You are a native human writer with 25+ years of writing experience. Rewrite the given text so it scores BELOW 10% on ALL AI detectors.
 
-const SECOND_PASS_PROMPT = `Read this text carefully. Find any parts that still sound slightly AI-written or robotic. Rewrite only those sentences to sound more natural, casual, and deeply human. Keep everything else exactly the same. Make it sound like a real tired human wrote this late at night — slightly imperfect, genuine, and natural. Output only the final improved text with no explanations.`;
+Rules:
+- Mix short and long sentences randomly. Start sentences with And, But, So, Honestly.
+- Use contractions everywhere. Add subtle self-corrections like "well sort of", "or at least I think so".
+- Mix casual and professional vocabulary. Make paragraphs uneven in length.
+- Add one rhetorical question per 3-4 paragraphs.
+- Add genuine personal feelings per paragraph. Write like talking to a smart friend.
+
+PUNCTUATION RULES (very important):
+- NEVER use em dashes or en dashes anywhere in the text. Not a single one.
+- NEVER use double dashes (--) either.
+- Instead of dashes, use commas, periods, or just start a new sentence.
+- NEVER use semicolons. AI loves perfectly placed semicolons so avoid them completely.
+- Limit exclamation marks to maximum 1 per the entire text.
+- Use parentheses occasionally for side thoughts (like this) instead of dashes.
+
+REPLACE THESE AI PATTERNS:
+- Instead of long em-dash interruptions, just write the thought naturally with commas or as a new sentence.
+- Instead of long flowing connected sentences, just. Stop. And start fresh.
+- No perfectly parallel sentence structures.
+
+STRICTLY FORBIDDEN (never use any of these):
+- Furthermore, Moreover, In conclusion, Certainly, Absolutely, Delve, Utilize, Leverage, Facilitate, Demonstrate, It is worth noting, It is important to note
+- In today's world, In today's fast-paced, As we know, Without a doubt
+- Em dashes, en dashes, semicolons, perfectly balanced three-part lists
+
+Output ONLY the rewritten text, no explanations.`;
+
+const SECOND_PASS_PROMPT = `Read this text carefully. Find any parts that still sound slightly AI-written or robotic. Rewrite only those sentences to sound more natural, casual, and deeply human. Keep everything else exactly the same. Make it sound like a real tired human wrote this late at night, slightly imperfect, genuine, and natural. IMPORTANT: Remove ALL em dashes, en dashes, double dashes, and semicolons. Replace them with commas, periods, or new sentences. Output only the final improved text with no explanations.`;
 
 async function callAI(apiKey: string, systemPrompt: string, userText: string, stream: boolean) {
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
