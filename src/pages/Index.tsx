@@ -9,21 +9,14 @@ import { AlertTriangle } from "lucide-react";
 
 const Index = () => {
   const [input, setInput] = useState("");
-  const [tone, setTone] = useState("auto");
-  const [usedDeep, setUsedDeep] = useState(false);
+  const [tone, setTone] = useState("professional");
+  const [level, setLevel] = useState("medium");
 
-  const { output, pass1Preview, isLoading, isDeepLoading, passLabel, humanize, deepHumanize, clearOutput } =
-    useHumanize({ tone });
+  const { output, isLoading, humanize, clearOutput } = useHumanize({ tone, level });
 
   const handleClear = () => {
     setInput("");
     clearOutput();
-    setUsedDeep(false);
-  };
-
-  const handleDeepHumanize = () => {
-    setUsedDeep(true);
-    deepHumanize(input);
   };
 
   return (
@@ -38,7 +31,12 @@ const Index = () => {
         >
           {/* Controls */}
           <div className="glass-card rounded-2xl p-5 mb-4 shadow-card">
-            <ControlsPanel tone={tone} onToneChange={setTone} />
+            <ControlsPanel
+              tone={tone}
+              onToneChange={setTone}
+              level={level}
+              onLevelChange={setLevel}
+            />
           </div>
 
           {/* Editor panels */}
@@ -48,21 +46,12 @@ const Index = () => {
                 value={input}
                 onChange={setInput}
                 onHumanize={() => humanize(input)}
-                onDeepHumanize={handleDeepHumanize}
                 onClear={handleClear}
                 isLoading={isLoading}
-                isDeepLoading={isDeepLoading}
-                passLabel={passLabel}
               />
             </div>
             <div className="glass-card rounded-2xl p-5 shadow-card">
-              <TextOutputPanel
-                value={output}
-                pass1Preview={pass1Preview}
-                isLoading={isLoading || isDeepLoading}
-                showTip={usedDeep}
-                passLabel={passLabel}
-              />
+              <TextOutputPanel value={output} isLoading={isLoading} />
             </div>
           </div>
 
