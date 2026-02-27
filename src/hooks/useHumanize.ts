@@ -7,46 +7,6 @@ interface UseHumanizeOptions {
   tone: string;
 }
 
-async function streamResponse(
-  resp: Response,
-  onChunk: (text: string) => void
-): Promise<string> {
-  if (!resp.body) throw new Error("No response body");
-  const reader = resp.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  let result = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-
-    let newlineIndex: number;
-    while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
-      let line = buffer.slice(0, newlineIndex);
-      buffer = buffer.slice(newlineIndex + 1);
-      if (line.endsWith("\r")) line = line.slice(0, -1);
-      if (line.startsWith(":") || line.trim() === "") continue;
-      if (!line.startsWith("data: ")) continue;
-      const jsonStr = line.slice(6).trim();
-      if (jsonStr === "[DONE]") break;
-      try {
-        const parsed = JSON.parse(jsonStr);
-        const content = parsed.choices?.[0]?.delta?.content;
-        if (content) {
-          result += content;
-          onChunk(result);
-        }
-      } catch {
-        buffer = line + "\n" + buffer;
-        break;
-      }
-    }
-  }
-  return result;
-}
-
 export function useHumanize({ tone }: UseHumanizeOptions) {
   const [output, setOutput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -61,15 +21,9 @@ export function useHumanize({ tone }: UseHumanizeOptions) {
 
       setIsLoading(true);
       setOutput("");
+      setLoadingLabel(deep ? "Pass 1 of 2…" : "Humanizing…");
 
       try {
-        if (deep) {
-          // Two-pass: pass 1 is non-streaming on backend, pass 2 streams
-          setLoadingLabel("Pass 1 of 2…");
-        } else {
-          setLoadingLabel("Humanizing…");
-        }
-
         const resp = await fetch(HUMANIZE_URL, {
           method: "POST",
           headers: {
@@ -88,9 +42,10 @@ export function useHumanize({ tone }: UseHumanizeOptions) {
           setLoadingLabel("Pass 2 of 2…");
         }
 
-        const result = await streamResponse(resp, setOutput);
-
-        if (!result) {
+        const data = await resp.json();
+        if (data.result) {
+          setOutput(data.result);
+        } else {
           toast.error("No output received. Please try again.");
         }
       } catch (e) {
