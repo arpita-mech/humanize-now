@@ -12,7 +12,7 @@ const Index = () => {
   const [tone, setTone] = useState("auto");
   const [usedDeep, setUsedDeep] = useState(false);
 
-  const { output, isLoading, isDeepLoading, passLabel, humanize, deepHumanize, clearOutput } =
+  const { output, pass1Preview, isLoading, isDeepLoading, passLabel, humanize, deepHumanize, clearOutput } =
     useHumanize({ tone });
 
   const handleClear = () => {
@@ -58,8 +58,10 @@ const Index = () => {
             <div className="glass-card rounded-2xl p-5 shadow-card">
               <TextOutputPanel
                 value={output}
+                pass1Preview={pass1Preview}
                 isLoading={isLoading || isDeepLoading}
                 showTip={usedDeep}
+                passLabel={passLabel}
               />
             </div>
           </div>

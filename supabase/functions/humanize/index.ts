@@ -14,36 +14,40 @@ const toneInstructions: Record<string, string> = {
   friendly: "Sound warm, friendly and approachable.",
 };
 
-const FIRST_PASS_PROMPT = `You are a native human writer with 25+ years of writing experience. Rewrite the given text so it scores BELOW 10% on ALL AI detectors.
+const FIRST_PASS_PROMPT = `You are a real human being writing casually. You have emotions, opinions, and you make small mistakes sometimes. Rewrite the text below as if you personally lived this experience and you're telling a friend about it over coffee.
 
-Rules:
-- Mix short and long sentences randomly. Start sentences with And, But, So, Honestly.
-- Use contractions everywhere. Add subtle self-corrections like "well sort of", "or at least I think so".
-- Mix casual and professional vocabulary. Make paragraphs uneven in length.
-- Add one rhetorical question per 3-4 paragraphs.
-- Add genuine personal feelings per paragraph. Write like talking to a smart friend.
+Rules you must follow without exception:
 
-PUNCTUATION RULES (very important):
-- NEVER use em dashes or en dashes anywhere in the text. Not a single one.
-- NEVER use double dashes (--) either.
-- Instead of dashes, use commas, periods, or just start a new sentence.
-- NEVER use semicolons. AI loves perfectly placed semicolons so avoid them completely.
-- Limit exclamation marks to maximum 1 per the entire text.
-- Use parentheses occasionally for side thoughts (like this) instead of dashes.
+1. Write the way people actually talk, not how they write in textbooks
+2. Use short sentences. Really short sometimes. Like this.
+3. Use contractions always, don't, can't, I've, won't, wasn't, it's
+4. Add personal reactions, 'that hit different', 'not gonna lie', 'which was kind of unexpected', 'and yeah, it worked'
+5. Make some paragraphs just one sentence long
+6. Make some paragraphs 4-5 sentences with no perfect structure
+7. Never use comma then a fancy connecting word, just start a new sentence
+8. Add small admissions of doubt, 'I think', 'probably', 'more or less', 'if I'm being honest', 'at least in my case'
+9. Randomly vary where you put the main point of a sentence, sometimes front, sometimes buried in the middle
+10. Read each sentence back, if it sounds like a robot wrote it, rewrite it
 
-REPLACE THESE AI PATTERNS:
-- Instead of long em-dash interruptions, just write the thought naturally with commas or as a new sentence.
-- Instead of long flowing connected sentences, just. Stop. And start fresh.
-- No perfectly parallel sentence structures.
+BANNED FOREVER:
+em dashes, en dashes, semicolons, Furthermore, Moreover, In conclusion, It is worth noting, Certainly, Absolutely, Delve, Utilize, Leverage, Facilitate, Demonstrate, In today's world, Without a doubt, This highlights, This ensures, It is important, plays a crucial role, perfectly balanced three part lists
 
-STRICTLY FORBIDDEN (never use any of these):
-- Furthermore, Moreover, In conclusion, Certainly, Absolutely, Delve, Utilize, Leverage, Facilitate, Demonstrate, It is worth noting, It is important to note
-- In today's world, In today's fast-paced, As we know, Without a doubt
-- Em dashes, en dashes, semicolons, perfectly balanced three-part lists
+Output only the rewritten text. Nothing else.`;
 
-Output ONLY the rewritten text, no explanations.`;
+const SECOND_PASS_PROMPT = `You are editing a piece of writing to make it sound less robotic. Read through the text and do the following:
 
-const SECOND_PASS_PROMPT = `Read this text carefully. Find any parts that still sound slightly AI-written or robotic. Rewrite only those sentences to sound more natural, casual, and deeply human. Keep everything else exactly the same. Make it sound like a real tired human wrote this late at night, slightly imperfect, genuine, and natural. IMPORTANT: Remove ALL em dashes, en dashes, double dashes, and semicolons. Replace them with commas, periods, or new sentences. Output only the final improved text with no explanations.`;
+- Find any sentence that sounds too clean or too structured, break it up
+- Find any word over 3 syllables, replace it with a simpler word
+- Find any two consecutive sentences with similar length, change one
+- Add one small personal comment or reaction somewhere natural
+- Remove any phrase that sounds like it belongs in a formal report
+- If you see any pattern repeating (sentence structure, word choice), break that pattern immediately
+
+The goal: this text should feel like a smart but tired person wrote it on their laptop at night. Slightly imperfect. Real. Human.
+
+Output only the final text. No comments, no explanations.`;
+
+const USER_PREFIX = "Rewrite this text right now, output only the result:\n\n";
 
 async function callAI(apiKey: string, systemPrompt: string, userText: string, stream: boolean) {
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -55,10 +59,11 @@ async function callAI(apiKey: string, systemPrompt: string, userText: string, st
     body: JSON.stringify({
       model: "google/gemini-3-flash-preview",
       temperature: 1.0,
+      top_p: 0.95,
       max_tokens: 2048,
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: userText },
+        { role: "user", content: USER_PREFIX + userText },
       ],
       stream,
     }),
@@ -129,7 +134,7 @@ serve(async (req) => {
     const firstPassPrompt = `${FIRST_PASS_PROMPT}\n\nTone instruction: ${toneInstruction}`;
 
     if (deep) {
-      // Two-pass: first pass non-streaming, second pass streaming
+      // Pass 1: non-streaming
       const pass1Resp = await callAI(LOVABLE_API_KEY, firstPassPrompt, text, true);
       if (!pass1Resp.ok) {
         if (pass1Resp.status === 429) return errorResponse("Rate limit exceeded. Please wait and try again.", 429);
@@ -137,17 +142,45 @@ serve(async (req) => {
         return errorResponse("Failed to process text. Please try again.", 500);
       }
       const pass1Result = await readFullResponse(pass1Resp);
+      console.log("=== PASS 1 OUTPUT ===", pass1Result.substring(0, 200));
       if (!pass1Result) return errorResponse("First pass produced no output.", 500);
 
-      // Second pass - stream the response
+      // Send pass1 result as a special SSE event, then stream pass 2
       const pass2Resp = await callAI(LOVABLE_API_KEY, SECOND_PASS_PROMPT, pass1Result, true);
       if (!pass2Resp.ok) {
         if (pass2Resp.status === 429) return errorResponse("Rate limit exceeded. Please wait and try again.", 429);
         if (pass2Resp.status === 402) return errorResponse("Usage limit reached. Please try again later.", 402);
         return errorResponse("Failed to process text on second pass.", 500);
       }
+      console.log("=== PASS 2 STARTED ===");
 
-      return new Response(pass2Resp.body, {
+      // Create a custom stream that first sends pass1 preview, then pass2 tokens
+      const { readable, writable } = new TransformStream();
+      const writer = writable.getWriter();
+      const encoder = new TextEncoder();
+
+      (async () => {
+        try {
+          // Send pass1 result as a custom event
+          await writer.write(encoder.encode(`event: pass1\ndata: ${JSON.stringify({ content: pass1Result })}\n\n`));
+
+          // Pipe pass2 stream
+          if (pass2Resp.body) {
+            const reader = pass2Resp.body.getReader();
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              await writer.write(value);
+            }
+          }
+        } catch (e) {
+          console.error("Stream error:", e);
+        } finally {
+          await writer.close();
+        }
+      })();
+
+      return new Response(readable, {
         headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
       });
     } else {
