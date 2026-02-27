@@ -9,14 +9,21 @@ import { AlertTriangle } from "lucide-react";
 
 const Index = () => {
   const [input, setInput] = useState("");
-  const [tone, setTone] = useState("professional");
-  const [level, setLevel] = useState("medium");
+  const [tone, setTone] = useState("auto");
+  const [usedDeep, setUsedDeep] = useState(false);
 
-  const { output, isLoading, humanize, clearOutput } = useHumanize({ tone, level });
+  const { output, isLoading, isDeepLoading, passLabel, humanize, deepHumanize, clearOutput } =
+    useHumanize({ tone });
 
   const handleClear = () => {
     setInput("");
     clearOutput();
+    setUsedDeep(false);
+  };
+
+  const handleDeepHumanize = () => {
+    setUsedDeep(true);
+    deepHumanize(input);
   };
 
   return (
@@ -31,12 +38,7 @@ const Index = () => {
         >
           {/* Controls */}
           <div className="glass-card rounded-2xl p-5 mb-4 shadow-card">
-            <ControlsPanel
-              tone={tone}
-              onToneChange={setTone}
-              level={level}
-              onLevelChange={setLevel}
-            />
+            <ControlsPanel tone={tone} onToneChange={setTone} />
           </div>
 
           {/* Editor panels */}
@@ -46,12 +48,19 @@ const Index = () => {
                 value={input}
                 onChange={setInput}
                 onHumanize={() => humanize(input)}
+                onDeepHumanize={handleDeepHumanize}
                 onClear={handleClear}
                 isLoading={isLoading}
+                isDeepLoading={isDeepLoading}
+                passLabel={passLabel}
               />
             </div>
             <div className="glass-card rounded-2xl p-5 shadow-card">
-              <TextOutputPanel value={output} isLoading={isLoading} />
+              <TextOutputPanel
+                value={output}
+                isLoading={isLoading || isDeepLoading}
+                showTip={usedDeep}
+              />
             </div>
           </div>
 
