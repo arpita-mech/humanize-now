@@ -5,14 +5,13 @@ import { TextInputPanel } from "@/components/TextInputPanel";
 import { TextOutputPanel } from "@/components/TextOutputPanel";
 import { ControlsPanel } from "@/components/ControlsPanel";
 import { useHumanize } from "@/hooks/useHumanize";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Lightbulb } from "lucide-react";
 
 const Index = () => {
   const [input, setInput] = useState("");
-  const [tone, setTone] = useState("professional");
-  const [level, setLevel] = useState("medium");
+  const [tone, setTone] = useState("auto");
 
-  const { output, isLoading, humanize, clearOutput } = useHumanize({ tone, level });
+  const { output, isLoading, loadingLabel, humanize, deepHumanize, clearOutput } = useHumanize({ tone });
 
   const handleClear = () => {
     setInput("");
@@ -31,12 +30,7 @@ const Index = () => {
         >
           {/* Controls */}
           <div className="glass-card rounded-2xl p-5 mb-4 shadow-card">
-            <ControlsPanel
-              tone={tone}
-              onToneChange={setTone}
-              level={level}
-              onLevelChange={setLevel}
-            />
+            <ControlsPanel tone={tone} onToneChange={setTone} />
           </div>
 
           {/* Editor panels */}
@@ -46,8 +40,10 @@ const Index = () => {
                 value={input}
                 onChange={setInput}
                 onHumanize={() => humanize(input)}
+                onDeepHumanize={() => deepHumanize(input)}
                 onClear={handleClear}
                 isLoading={isLoading}
+                loadingLabel={loadingLabel}
               />
             </div>
             <div className="glass-card rounded-2xl p-5 shadow-card">
@@ -55,8 +51,20 @@ const Index = () => {
             </div>
           </div>
 
+          {/* Tip after output */}
+          {output && !isLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-xl px-4 py-3"
+            >
+              <Lightbulb className="h-4 w-4 text-primary" />
+              <span>💡 Tip: Run through Deep Humanize twice for best results</span>
+            </motion.div>
+          )}
+
           {/* Disclaimer */}
-          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <AlertTriangle className="h-3.5 w-3.5" />
             <span>Results may vary across AI detectors. Please wait a few seconds between requests.</span>
           </div>
