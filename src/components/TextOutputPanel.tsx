@@ -1,18 +1,19 @@
 import { Button } from "@/components/ui/button";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Lightbulb } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 interface TextOutputPanelProps {
   value: string;
   isLoading: boolean;
+  showTip: boolean;
 }
 
 function countWords(text: string) {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
 }
 
-export function TextOutputPanel({ value, isLoading }: TextOutputPanelProps) {
+export function TextOutputPanel({ value, isLoading, showTip }: TextOutputPanelProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -42,6 +43,13 @@ export function TextOutputPanel({ value, isLoading }: TextOutputPanelProps) {
           </p>
         )}
       </div>
+
+      {showTip && value && !isLoading && (
+        <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Lightbulb className="h-3.5 w-3.5 text-yellow-500" />
+          <span>Tip: Run through Deep Humanize twice for best results</span>
+        </div>
+      )}
 
       <div className="mt-4">
         <Button
