@@ -9,11 +9,12 @@ interface UseHumanizeOptions {
 
 export function useHumanize({ tone }: UseHumanizeOptions) {
   const [output, setOutput] = useState("");
+  const [pass1Preview, setPass1Preview] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDeepLoading, setIsDeepLoading] = useState(false);
   const [passLabel, setPassLabel] = useState("");
 
-  const streamResponse = async (resp: Response): Promise<string> => {
+  const streamResponse = async (resp: Response, onPass1?: (text: string) => void): Promise<string> => {
     if (!resp.body) throw new Error("No response body");
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
@@ -31,6 +32,27 @@ export function useHumanize({ tone }: UseHumanizeOptions) {
         buffer = buffer.slice(newlineIndex + 1);
         if (line.endsWith("\r")) line = line.slice(0, -1);
         if (line.startsWith(":") || line.trim() === "") continue;
+
+        // Handle custom pass1 event
+        if (line.startsWith("event: pass1")) {
+          // Read the next data line
+          const nextNewline = buffer.indexOf("\n");
+          if (nextNewline !== -1) {
+            let dataLine = buffer.slice(0, nextNewline);
+            buffer = buffer.slice(nextNewline + 1);
+            if (dataLine.endsWith("\r")) dataLine = dataLine.slice(0, -1);
+            if (dataLine.startsWith("data: ")) {
+              try {
+                const parsed = JSON.parse(dataLine.slice(6).trim());
+                if (parsed.content && onPass1) {
+                  onPass1(parsed.content);
+                }
+              } catch { /* ignore */ }
+            }
+          }
+          continue;
+        }
+
         if (!line.startsWith("data: ")) continue;
         const jsonStr = line.slice(6).trim();
         if (jsonStr === "[DONE]") break;
@@ -58,6 +80,7 @@ export function useHumanize({ tone }: UseHumanizeOptions) {
       }
       setIsLoading(true);
       setOutput("");
+      setPass1Preview("");
       setPassLabel("");
 
       try {
@@ -94,12 +117,10 @@ export function useHumanize({ tone }: UseHumanizeOptions) {
       }
       setIsDeepLoading(true);
       setOutput("");
+      setPass1Preview("");
       setPassLabel("Pass 1 of 2...");
 
       try {
-        // The edge function handles both passes internally.
-        // Pass 1 happens server-side (non-streaming), pass 2 streams back.
-        // We show "Pass 1 of 2..." initially, then switch when streaming starts.
         const resp = await fetch(HUMANIZE_URL, {
           method: "POST",
           headers: {
@@ -115,7 +136,10 @@ export function useHumanize({ tone }: UseHumanizeOptions) {
         }
 
         setPassLabel("Pass 2 of 2...");
-        const result = await streamResponse(resp);
+        const result = await streamResponse(resp, (pass1Text) => {
+          setPass1Preview(pass1Text);
+          setOutput(pass1Text); // Show pass1 result briefly
+        });
         if (!result) toast.error("No output received. Please try again.");
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Failed to humanize text");
@@ -127,7 +151,10 @@ export function useHumanize({ tone }: UseHumanizeOptions) {
     [tone]
   );
 
-  const clearOutput = useCallback(() => setOutput(""), []);
+  const clearOutput = useCallback(() => {
+    setOutput("");
+    setPass1Preview("");
+  }, []);
 
-  return { output, isLoading, isDeepLoading, passLabel, humanize, deepHumanize, clearOutput };
+  return { output, pass1Preview, isLoading, isDeepLoading, passLabel, humanize, deepHumanize, clearOutput };
 }

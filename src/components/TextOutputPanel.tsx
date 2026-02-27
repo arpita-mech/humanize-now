@@ -5,15 +5,18 @@ import { toast } from "sonner";
 
 interface TextOutputPanelProps {
   value: string;
+  pass1Preview: string;
   isLoading: boolean;
   showTip: boolean;
+  passLabel: string;
 }
 
 function countWords(text: string) {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
 }
 
-export function TextOutputPanel({ value, isLoading, showTip }: TextOutputPanelProps) {
+export function TextOutputPanel({ value, pass1Preview, isLoading, showTip, passLabel }: TextOutputPanelProps) {
+  const showingPass1 = pass1Preview && passLabel.includes("Pass 2") && !value;
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -35,7 +38,12 @@ export function TextOutputPanel({ value, isLoading, showTip }: TextOutputPanelPr
       </div>
 
       <div className="flex-1 min-h-[280px] rounded-lg border border-border bg-card p-4 text-sm leading-relaxed text-foreground font-body overflow-y-auto">
-        {value ? (
+        {showingPass1 ? (
+          <div>
+            <p className="text-xs text-muted-foreground font-semibold mb-2">Pass 1 result (being improved...)</p>
+            <p className="whitespace-pre-wrap opacity-60">{pass1Preview}</p>
+          </div>
+        ) : value ? (
           <p className="whitespace-pre-wrap">{value}</p>
         ) : (
           <p className="text-muted-foreground italic">
