@@ -6,7 +6,6 @@ import { TextOutputPanel } from "@/components/TextOutputPanel";
 import { ControlsPanel } from "@/components/ControlsPanel";
 import { useHumanize } from "@/hooks/useHumanize";
 import { AlertTriangle, Lightbulb, ExternalLink } from "lucide-react";
-import { BuyMeCoffeeCard } from "@/components/BuyMeCoffeeCard";
 
 const detectors = [
   { name: "GPTZero", url: "https://gptzero.me" },
@@ -95,11 +94,6 @@ const Index = () => {
               <span>💡 Tip: Run through Deep Humanize twice for best results</span>
             </motion.div>
           )}
-
-          {/* Buy Me a Coffee */}
-          <div className="mt-6">
-            <BuyMeCoffeeCard visible={!!output && !isLoading} />
-          </div>
 
           {/* Disclaimer */}
           <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
