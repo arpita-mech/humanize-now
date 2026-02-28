@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 export function HeroSection() {
   return (
@@ -16,6 +17,15 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
+          {/* Logo */}
+          <div className="flex justify-center mb-6">
+            <img
+              src={logo}
+              alt="Deephumanize logo"
+              className="h-12 md:h-16 invert"
+            />
+          </div>
+
           <div className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-sm font-medium text-primary-foreground mb-6">
             <Sparkles className="h-4 w-4" />
             No Login Required • Free • Instant
@@ -62,7 +72,7 @@ export function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.8 }}
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}
           >
             — built by curiosity, powered by caffeine ☕
           </motion.p>
