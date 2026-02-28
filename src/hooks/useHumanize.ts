@@ -5,15 +5,16 @@ const HUMANIZE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/humanize
 
 interface UseHumanizeOptions {
   tone: string;
+  detector: string;
 }
 
-export function useHumanize({ tone }: UseHumanizeOptions) {
+export function useHumanize({ tone, detector }: UseHumanizeOptions) {
   const [output, setOutput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [loadingLabel, setLoadingLabel] = useState("");
 
   const doRequest = useCallback(
-    async (text: string, deep: boolean) => {
+    async (text: string, deep: boolean, mode?: string) => {
       if (!text.trim()) {
         toast.error("Please paste some text first.");
         return;
@@ -21,7 +22,14 @@ export function useHumanize({ tone }: UseHumanizeOptions) {
 
       setIsLoading(true);
       setOutput("");
-      setLoadingLabel(deep ? "Pass 1 of 2…" : "Humanizing…");
+
+      if (mode === "copyleaks") {
+        setLoadingLabel("Applying Copyleaks bypass...");
+      } else if (deep) {
+        setLoadingLabel("Pass 1 of 2…");
+      } else {
+        setLoadingLabel("Humanizing…");
+      }
 
       try {
         const resp = await fetch(HUMANIZE_URL, {
@@ -30,7 +38,7 @@ export function useHumanize({ tone }: UseHumanizeOptions) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ text, tone, deep }),
+          body: JSON.stringify({ text, tone, deep, detector, mode }),
         });
 
         if (!resp.ok) {
@@ -38,7 +46,7 @@ export function useHumanize({ tone }: UseHumanizeOptions) {
           throw new Error(err.error || "Something went wrong");
         }
 
-        if (deep) {
+        if (deep && mode !== "copyleaks") {
           setLoadingLabel("Pass 2 of 2…");
         }
 
@@ -56,12 +64,13 @@ export function useHumanize({ tone }: UseHumanizeOptions) {
         setLoadingLabel("");
       }
     },
-    [tone]
+    [tone, detector]
   );
 
   const humanize = useCallback((text: string) => doRequest(text, false), [doRequest]);
   const deepHumanize = useCallback((text: string) => doRequest(text, true), [doRequest]);
+  const copyleaksMode = useCallback((text: string) => doRequest(text, false, "copyleaks"), [doRequest]);
   const clearOutput = useCallback(() => setOutput(""), []);
 
-  return { output, isLoading, loadingLabel, humanize, deepHumanize, clearOutput };
+  return { output, isLoading, loadingLabel, humanize, deepHumanize, copyleaksMode, clearOutput };
 }

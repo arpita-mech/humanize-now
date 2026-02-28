@@ -7,7 +7,7 @@ import { ControlsPanel } from "@/components/ControlsPanel";
 import { useHumanize } from "@/hooks/useHumanize";
 import { AlertTriangle, Lightbulb, ExternalLink } from "lucide-react";
 
-const detectors = [
+const detectorLinks = [
   { name: "GPTZero", url: "https://gptzero.me" },
   { name: "ZeroGPT", url: "https://www.zerogpt.com" },
   { name: "Copyleaks", url: "https://copyleaks.com/ai-content-detector" },
@@ -18,9 +18,10 @@ const detectors = [
 const Index = () => {
   const [input, setInput] = useState("");
   const [tone, setTone] = useState("auto");
-  const lastDeepRef = useRef(false);
+  const [detector, setDetector] = useState("all");
+  const lastModeRef = useRef<"humanize" | "deep" | "copyleaks">("humanize");
 
-  const { output, isLoading, loadingLabel, humanize, deepHumanize, clearOutput } = useHumanize({ tone });
+  const { output, isLoading, loadingLabel, humanize, deepHumanize, copyleaksMode, clearOutput } = useHumanize({ tone, detector });
 
   const handleClear = () => {
     setInput("");
@@ -28,22 +29,33 @@ const Index = () => {
   };
 
   const handleHumanize = () => {
-    lastDeepRef.current = false;
+    lastModeRef.current = "humanize";
     humanize(input);
   };
 
   const handleDeepHumanize = () => {
-    lastDeepRef.current = true;
+    lastModeRef.current = "deep";
     deepHumanize(input);
   };
 
+  const handleCopyleaks = () => {
+    lastModeRef.current = "copyleaks";
+    copyleaksMode(input);
+  };
+
   const handleRunAgain = () => {
-    if (lastDeepRef.current) {
+    if (lastModeRef.current === "deep") {
       deepHumanize(input);
+    } else if (lastModeRef.current === "copyleaks") {
+      copyleaksMode(input);
     } else {
       humanize(input);
     }
   };
+
+  const tipText = lastModeRef.current === "copyleaks"
+    ? "💡 For best results run Copyleaks Mode twice"
+    : "💡 Tip: Run through Deep Humanize twice for best results";
 
   return (
     <div className="min-h-screen bg-background">
@@ -57,7 +69,7 @@ const Index = () => {
         >
           {/* Controls */}
           <div className="glass-card rounded-2xl p-4 sm:p-5 mb-4 shadow-card">
-            <ControlsPanel tone={tone} onToneChange={setTone} />
+            <ControlsPanel tone={tone} onToneChange={setTone} detector={detector} onDetectorChange={setDetector} />
           </div>
 
           {/* Editor panels */}
@@ -68,16 +80,18 @@ const Index = () => {
                 onChange={setInput}
                 onHumanize={handleHumanize}
                 onDeepHumanize={handleDeepHumanize}
+                onCopyleaks={handleCopyleaks}
                 onClear={handleClear}
                 isLoading={isLoading}
                 loadingLabel={loadingLabel}
+                detector={detector}
               />
             </div>
             <div className="glass-card rounded-2xl p-4 sm:p-5 shadow-card">
               <TextOutputPanel
                 value={output}
                 isLoading={isLoading}
-                isDeep={lastDeepRef.current}
+                isDeep={lastModeRef.current === "deep"}
                 onRunAgain={handleRunAgain}
               />
             </div>
@@ -91,7 +105,7 @@ const Index = () => {
               className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-xl px-4 py-3"
             >
               <Lightbulb className="h-4 w-4 text-primary shrink-0" />
-              <span>💡 Tip: Run through Deep Humanize twice for best results</span>
+              <span>{tipText}</span>
             </motion.div>
           )}
 
@@ -107,7 +121,7 @@ const Index = () => {
               Test Your Result On These Detectors
             </h3>
             <div className="flex flex-wrap justify-center gap-3">
-              {detectors.map((d) => (
+              {detectorLinks.map((d) => (
                 <a
                   key={d.name}
                   href={d.url}

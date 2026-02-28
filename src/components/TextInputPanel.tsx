@@ -1,7 +1,7 @@
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eraser, Wand2, Flame } from "lucide-react";
+import { Eraser, Wand2, Flame, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface TextInputPanelProps {
@@ -9,16 +9,18 @@ interface TextInputPanelProps {
   onChange: (value: string) => void;
   onHumanize: () => void;
   onDeepHumanize: () => void;
+  onCopyleaks: () => void;
   onClear: () => void;
   isLoading: boolean;
   loadingLabel: string;
+  detector: string;
 }
 
 function countWords(text: string) {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
 }
 
-export function TextInputPanel({ value, onChange, onHumanize, onDeepHumanize, onClear, isLoading, loadingLabel }: TextInputPanelProps) {
+export function TextInputPanel({ value, onChange, onHumanize, onDeepHumanize, onCopyleaks, onClear, isLoading, loadingLabel, detector }: TextInputPanelProps) {
   const spinner = (
     <span className="h-4 w-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
   );
@@ -84,7 +86,7 @@ export function TextInputPanel({ value, onChange, onHumanize, onDeepHumanize, on
               background: "linear-gradient(135deg, hsl(262 80% 55%), hsl(340 75% 55%))",
             }}
           >
-            {isLoading && loadingLabel !== "Humanizing…" ? (
+            {isLoading && loadingLabel === "Pass 1 of 2…" || isLoading && loadingLabel === "Pass 2 of 2…" ? (
               <span className="flex items-center gap-2">
                 {spinner}
                 {loadingLabel}
@@ -101,6 +103,36 @@ export function TextInputPanel({ value, onChange, onHumanize, onDeepHumanize, on
         <div className="flex justify-center">
           <Badge variant="secondary" className="text-[10px] font-normal">
             Best for &lt;10% AI score
+          </Badge>
+        </div>
+
+        {/* Copyleaks Mode button */}
+        <motion.div whileTap={{ scale: 0.98 }}>
+          <Button
+            onClick={onCopyleaks}
+            disabled={isLoading || !value.trim()}
+            className="w-full h-11 font-display font-semibold text-primary-foreground"
+            style={{
+              background: "linear-gradient(135deg, hsl(145 60% 32%), hsl(160 55% 38%))",
+            }}
+          >
+            {isLoading && loadingLabel === "Applying Copyleaks bypass..." ? (
+              <span className="flex items-center gap-2">
+                {spinner}
+                {loadingLabel}
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Copyleaks Mode 🛡️
+              </span>
+            )}
+          </Button>
+        </motion.div>
+
+        <div className="flex justify-center">
+          <Badge variant="secondary" className="text-[10px] font-normal">
+            Optimized for Copyleaks detector
           </Badge>
         </div>
       </div>
