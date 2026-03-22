@@ -1,73 +1,141 @@
-# Welcome to your Lovable project
+# Humanize AI
 
-## Project info
+Humanize AI is a website that converts AI-generated text into more natural, human-like writing.
+It helps improve readability, tone, and authenticity so content sounds like it was written by a real person.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+The tool is useful for students, writers, marketers, and anyone who wants AI content to feel more natural.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## ✨ Features
 
-**Use Lovable**
+* Convert AI-generated text into human-like writing
+* Improve readability and flow
+* Adjust tone and style
+* Reduce robotic or repetitive phrasing
+* Simple and fast web interface
+* Copy or export the improved content
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🧠 How It Works
 
-**Use your preferred IDE**
+1. Paste AI-generated text into the editor
+2. Click **Humanize**
+3. The system rewrites the content with a natural tone
+4. Copy the improved version instantly
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🌍 Use Cases
 
-Follow these steps:
+* Improving AI-written articles
+* Making chatbot responses sound natural
+* Editing blog posts
+* Academic writing assistance
+* Marketing and social media content
+* Email writing
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🛠️ Tech Stack
 
-# Step 3: Install the necessary dependencies.
-npm i
+Example stack (edit based on your project):
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+* Frontend: HTML, CSS, JavaScript / React / Next.js
+* Backend: Node.js / API
+* AI Processing: Language model API
+* Deployment: Vercel / Netlify / Cloud Hosting
+
+---
+
+## 📦 Project Structure
+
+```
+project/
+│
+├── public/           # Static assets
+├── src/
+│   ├── components/   # UI components
+│   ├── pages/        # Website pages
+│   ├── utils/        # Text processing logic
+│   └── styles/       # Styling
+│
+├── package.json
+└── README.md
+```
+
+---
+
+## 🚀 Installation
+
+Clone the repository:
+
+```
+git clone https://github.com/arpita-mech/humanize-ai.git
+```
+
+Navigate to the project:
+
+```
+cd humanize-ai
+```
+
+Install dependencies:
+
+```
+npm install
+```
+
+Run the development server:
+
+```
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🌐 Deployment
 
-**Use GitHub Codespaces**
+You can deploy the website on:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+* Vercel
+* Netlify
+* Cloudflare Pages
+* Any Node.js hosting service
 
-## What technologies are used for this project?
+---
 
-This project is built with:
+## 🔮 Future Improvements
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+* Multiple writing styles (formal, casual, academic)
+* AI detection reduction optimization
+* Multi-language support
+* Save and manage documents
+* Chrome extension
+* API for developers
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## 🤝 Contributing
 
-## Can I connect a custom domain to my Lovable project?
+Contributions are welcome.
 
-Yes, you can!
+1. Fork the project
+2. Create your feature branch
+3. Commit your changes
+4. Open a pull request
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+## 👨‍💻 Author
+
+Created by **arpita-mech**
+
+If you find this project helpful, consider giving it a ⭐ on GitHub.
